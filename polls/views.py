@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from polls.models import Question, Choice
+from django.db.models import Sum
 
 
 # function-based view
@@ -11,7 +12,7 @@ def index(request):
     context = {
         "latest_question_list": latest_question_list,
         "titulo": "Curso de Python"
-        }
+    }
 
     return render(request, "polls/index.html", context)
 
@@ -32,7 +33,6 @@ def results(request, question_id):
 
 
 def vote(request, question_id):
-
     question = get_object_or_404(Question, pk=question_id)
     try:
         selected_choice = question.choice_set.get(pk=request.POST['choice'])
@@ -51,3 +51,26 @@ def vote(request, question_id):
         selected_choice.save()
 
         return HttpResponseRedirect(reverse("polls:results", args=(question_id,)))
+
+
+def statistics(request):
+
+    total_questions = Question.objects.count()
+    total_choices = Choice.objects.count()
+    most_voted_choices = Choice.objects.order_by("-votes")[:3]
+    questions_with_more_votes = Question.objects.annotate(
+        total=Sum("choice__votes")
+    ).order_by("-total")[:3]
+
+    questions_with_more_votes = Question.objects.annotate(
+        total=Sum("choice__votes")
+    ).order_by("total")[:3]
+
+    context = {
+        "total_questions": total_questions,
+        "total_choices": total_choices,
+        "most_voted_choices": most_voted_choices,
+        "questions_with_more_votes": questions_with_more_votes
+    }
+
+    return render(request, "polls/statistics.html", context)
