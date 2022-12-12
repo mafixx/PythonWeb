@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.db.models import Sum
 
-from polls.models import Question, Choice
+from polls.models import Question, Choice, Comment
 
 
 # function-based view
@@ -36,7 +36,6 @@ def results(request, question_id):
 
 
 def vote(request, question_id):
-
     # Carregamos um objeto Question da tabela tb_questions, a partir do question_id
     question = get_object_or_404(Question, pk=question_id)
     try:
@@ -60,7 +59,6 @@ def vote(request, question_id):
         # Salvamos (atualizamos) o objeto com a nova quantidade de votos
         selected_choice.save()
 
-
         # Por boas práticas, sempre que um usuário enviar dados via POST, redirecionamos o usuário
         # para outra página, por isso utilizamos o HttpResponseRedirect
         # A função reverse gera a URL a partir do nome da rota. Se essa rota precisar receber
@@ -70,7 +68,6 @@ def vote(request, question_id):
 
 
 def statistics(request):
-
     total_questions = Question.objects.count()
     total_choices = Choice.objects.count()
     most_voted_choices = Choice.objects.order_by("-votes")[:3]
@@ -96,5 +93,14 @@ def statistics(request):
 
 def comment(request, question_id):
     text = request.POST['text']
+    question = get_object_or_404(Question, pk=question_id)
 
-    return HttpResponse(f"Comentário: {text}")
+    comment = Comment(
+        question=question, text=text
+    )
+
+    comment.save()
+
+    return HttpResponseRedirect(
+        reverse("polls:results", args=(question.id,))
+    )
