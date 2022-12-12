@@ -9,7 +9,7 @@ class Question(models.Model):
         return self.question_text
 
     class Meta:
-        db_table = 'polls_question'
+        db_table = 'tb_questions'
 
 
 class Choice(models.Model):
@@ -22,3 +22,11 @@ class Choice(models.Model):
 
     class Meta:
         db_table = 'tb_choices'
+
+
+class Comment(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    text = models.TextField()
+
+    class Meta:
+        db_table = "tb_comments"
